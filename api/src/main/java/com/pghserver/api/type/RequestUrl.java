@@ -10,7 +10,6 @@ import java.util.Objects;
  * Structured request URL data to assist in handling requests.
  */
 public class RequestUrl {
-    public static final @NotNull RequestUrl NULL = new RequestUrl(null, "/", new LinkedHashMap<>());
     public final @NotNull String host;
     public final @NotNull String path;
     private final @NotNull LinkedHashMap<String, String> query;
@@ -18,7 +17,7 @@ public class RequestUrl {
     /**
      * Converts the query parameters to a string.
      *
-     * @return String formatted as such: <code>?a=b&c=d&e=f</code>
+     * @return Query parameters string
      */
     public @NotNull String queryString() {
         char start = query.isEmpty() ? ' ' : '&';
@@ -72,14 +71,14 @@ public class RequestUrl {
     }
 
     /**
-     * @return String formatted as such: <code>/about/us?a=b&c=d&e=f</code>
+     * @return URL as a string including the path and query parameters
      */
     public String toStringWithoutHost() {
         return path + queryString();
     }
 
     /**
-     * @return String formatted as such: <code>localhost:3000/about/us?a=b&c=d&e=f</code>
+     * @return Full URL as a string including the host, path, and query parameters
      */
     @Override
     public String toString() {

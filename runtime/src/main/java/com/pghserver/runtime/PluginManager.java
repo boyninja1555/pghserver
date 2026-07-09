@@ -2,7 +2,7 @@ package com.pghserver.runtime;
 
 import com.pghserver.api.PghAPI;
 import com.pghserver.api.PghPlugin;
-import com.pghserver.runtime.util.PghLogger;
+import com.pghserver.runtime.util.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,6 +18,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public class PluginManager {
+    private static final Logger logger = new Logger(PluginManager.class, System.out, System.err, System.err, System.err);
     private static final List<PghPlugin> plugins = new ArrayList<>();
     private static final List<URLClassLoader> classLoaders = new ArrayList<>();
 
@@ -25,14 +26,14 @@ public class PluginManager {
         if (!Files.exists(directory)) try {
             Files.createDirectories(directory);
         } catch (IOException ex) {
-            PghLogger.error("Could not create plugins directory!", ex);
+            logger.error("Could not create plugins directory!", ex);
             return;
         }
 
         try (var files = Files.list(directory)) {
             files.filter(path -> path.toString().endsWith(".jar")).forEach(PluginManager::loadJar);
         } catch (Exception ex) {
-            PghLogger.error("Failed to scan plugins directory!", ex);
+            logger.error("Failed to scan plugins directory!", ex);
         }
     }
 
@@ -42,7 +43,7 @@ public class PluginManager {
             JarFile jar = new JarFile(file.toFile());
             JarEntry manifestEntry = jar.getJarEntry("manifest.pgh");
             if (manifestEntry == null) {
-                PghLogger.warn("Skipping JAR without manifest.pgh!", file);
+                logger.warn("Skipping JAR without manifest.pgh!", file);
                 jar.close();
                 return;
             }
@@ -57,26 +58,26 @@ public class PluginManager {
             String mainClassName = properties.getProperty("main-class");
 
             if (name == null || name.isBlank()) {
-                PghLogger.error("Plugin missing required name field!", jarName);
+                logger.error("Plugin missing required name field!", jarName);
                 jar.close();
                 return;
             }
 
             if (version == null || version.isBlank()) {
-                PghLogger.error("Plugin missing required version field!", jarName);
+                logger.error("Plugin missing required version field!", jarName);
                 jar.close();
                 return;
             }
 
             if (mainClassName == null || mainClassName.isBlank()) {
-                PghLogger.error("Plugin missing required main-class field!", jarName);
+                logger.error("Plugin missing required main-class field!", jarName);
                 jar.close();
                 return;
             }
 
             JarEntry classEntry = jar.getJarEntry(mainClassName.replace('.', '/') + ".class");
             if (classEntry == null) {
-                PghLogger.error("Plugin main class does not exist!", jarName, mainClassName);
+                logger.error("Plugin main class does not exist!", jarName, mainClassName);
                 jar.close();
                 return;
             }
@@ -87,13 +88,13 @@ public class PluginManager {
             try {
                 clazz = Class.forName(mainClassName, true, loader);
             } catch (ClassNotFoundException ex) {
-                PghLogger.error("Could not load plugin main class!", jarName, mainClassName, ex);
+                logger.error("Could not load plugin main class!", jarName, mainClassName, ex);
                 loader.close();
                 return;
             }
 
             if (!PghPlugin.class.isAssignableFrom(clazz)) {
-                PghLogger.error("Plugin main class does not implement PghPlugin!", jarName, mainClassName);
+                logger.error("Plugin main class does not implement PghPlugin!", jarName, mainClassName);
                 loader.close();
                 return;
             }
@@ -103,27 +104,27 @@ public class PluginManager {
             Object instance = constructor.newInstance();
             plugins.add((PghPlugin) instance);
             classLoaders.add(loader);
-            PghLogger.info("Loaded plugin!", name, "v" + version);
+            logger.info("Loaded plugin!", name, "v" + version);
         } catch (Exception ex) {
-            PghLogger.error("Failed to load plugin!", jarName, ex);
+            logger.error("Failed to load plugin!", jarName, ex);
         }
     }
 
     public static void onEnable(PghAPI server) {
         for (PghPlugin plugin : plugins)
             try {
-                plugin.onEnable(server);
+                plugin.onEnable(server, new Logger(plugin, logger.logStream, logger.warningStream, logger.errorStream, logger.fatalStream));
             } catch (Exception ex) {
-                PghLogger.error("Plugin crashed during enable!", plugin, ex);
+                logger.error("Plugin crashed during enable!", plugin, ex);
             }
     }
 
     public static void onDisable(PghAPI server) {
         for (PghPlugin plugin : plugins)
             try {
-                plugin.onDisable(server);
+                plugin.onDisable(server, new Logger(plugin, logger.logStream, logger.warningStream, logger.errorStream, logger.fatalStream));
             } catch (Exception ex) {
-                PghLogger.error("Plugin crashed during disable!", plugin, ex);
+                logger.error("Plugin crashed during disable!", plugin, ex);
             }
 
         for (URLClassLoader loader : classLoaders)

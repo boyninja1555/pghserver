@@ -4,7 +4,7 @@ import com.pghserver.api.type.Request;
 import com.pghserver.api.type.Response;
 import com.pghserver.api.type.ResponseStatus;
 import com.pghserver.runtime.api.PghServer;
-import com.pghserver.runtime.util.PghLogger;
+import com.pghserver.runtime.util.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +20,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 
 public class Main {
+    private static final Logger logger = new Logger(Main.class, System.out, System.err, System.err, System.err);
+
     static void main(String[] args) {
         int port = 80;
         if (args.length >= 1 && Pattern.compile("[0-9]+").matcher(args[0]).matches())
@@ -33,8 +35,8 @@ public class Main {
         PluginManager.load(server.directory().resolve("plugins"));
         PluginManager.onEnable(server);
         try (var serverSocket = new ServerSocket(port)) {
-            PghLogger.info("Started PghServer on port " + serverSocket.getLocalPort() + "!");
-            PghLogger.info("Press Enter to stop it.");
+            logger.info("Started PghServer on port " + serverSocket.getLocalPort() + "!");
+            logger.info("Press Enter to stop it.");
             AtomicBoolean isRunning = new AtomicBoolean(true);
             serverSocket.setSoTimeout(250);
 
@@ -69,11 +71,11 @@ public class Main {
                     out.flush();
                 } catch (SocketTimeoutException ignored) {
                 } catch (IOException ex) {
-                    PghLogger.error("Client connection failed!", ex);
+                    logger.error("Client connection failed!", ex);
                 }
             }
         } catch (IOException ex) {
-            PghLogger.fatal("Could not start PghServer!", ex);
+            logger.fatal("Could not start PghServer!", ex);
         }
 
         PluginManager.onDisable(server);

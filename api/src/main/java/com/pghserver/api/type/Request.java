@@ -75,7 +75,7 @@ public class Request {
      * @return Whether the header is equal to that exact value
      */
     public boolean isHeader(@NotNull String name, @NotNull String value) {
-        String actual = header(name);
+        var actual = header(name);
         return actual != null && actual.equals(value);
     }
 
@@ -100,7 +100,7 @@ public class Request {
         this.headers = new HashMap<>(headers);
 
         lowerHeaders = new HashMap<>();
-        for (Map.Entry<String, String> header : headers.entrySet())
+        for (var header : headers.entrySet())
             lowerHeaders.put(header.getKey().toLowerCase(Locale.ROOT), header.getValue());
 
         this.body = body.clone();
@@ -121,11 +121,11 @@ public class Request {
      * @throws IOException Any problems encountered while writing to the output stream
      */
     public void toOutputStream(OutputStream out) throws IOException {
-        String requestLine = method().name() + " " + url().toStringWithoutHost() + " " + HTTP_VERSION;
+        var requestLine = method().name() + " " + url().toStringWithoutHost() + " " + HTTP_VERSION;
         out.write(requestLine.getBytes(StandardCharsets.UTF_8));
         out.write(CRLF_UTF8);
 
-        for (Map.Entry<String, String> header : headers.entrySet()) {
+        for (var header : headers.entrySet()) {
             out.write((header.getKey() + ": " + header.getValue()).getBytes(StandardCharsets.UTF_8));
             out.write(CRLF_UTF8);
         }
@@ -142,7 +142,7 @@ public class Request {
      * @return Request data
      */
     public static @Nullable Request fromInputStream(@NotNull InputStream in, Response response) {
-        String[] requestLine = new String[]{"", "", ""};
+        var requestLine = new String[]{"", "", ""};
         int requestLineIdx = 0;
         try {
             while (true) {
@@ -203,9 +203,9 @@ public class Request {
             return null;
         }
 
-        String path = requestLine[1];
-        Map<String, String> headers = new HashMap<>();
-        Map<String, String> lowerHeaders = new HashMap<>();
+        var path = requestLine[1];
+        var headers = new HashMap<String, String>();
+        var lowerHeaders = new HashMap<String, String>();
         StringBuilder headerLineBuilder;
         while (true) {
             headerLineBuilder = new StringBuilder();
@@ -231,10 +231,10 @@ public class Request {
                 return null;
             }
 
-            String headerLine = headerLineBuilder.toString();
+            var headerLine = headerLineBuilder.toString();
             if (headerLine.isBlank()) break;
 
-            String[] header = headerLine.split(":", 2);
+            var header = headerLine.split(":", 2);
             if (header.length != 2) {
                 response.reset();
                 response.status(ResponseStatus.BAD_REQUEST);
@@ -279,9 +279,9 @@ public class Request {
             }
         }
 
-        String host = lowerHeaders.getOrDefault("host", "");
-        String cleanPath = path;
-        LinkedHashMap<String, String> query = new LinkedHashMap<>();
+        var host = lowerHeaders.getOrDefault("host", "");
+        var cleanPath = path;
+        var query = new LinkedHashMap<String, String>();
         if (path.contains("?")) {
             String[] pathQuery = path.split(Pattern.quote("?"), 2);
             String[] queryEntries = pathQuery[1].split(Pattern.quote("&"));

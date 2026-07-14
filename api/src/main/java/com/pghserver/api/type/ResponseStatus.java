@@ -161,7 +161,7 @@ public record ResponseStatus(int code, @NotNull String string) {
      * @return Response status data
      */
     public static @NotNull ResponseStatus ofCode(int code) {
-        String string = codeStrings.get(code);
+        var string = codeStrings.get(code);
         if (string == null) throw new IllegalArgumentException("Undocumented HTTP status code " + code);
         return new ResponseStatus(code, string);
     }

@@ -5,7 +5,6 @@ import com.pghserver.api.PghPlugin;
 import com.pghserver.runtime.util.Logger;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -14,7 +13,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public class PluginManager {
@@ -38,24 +36,24 @@ public class PluginManager {
     }
 
     private static void loadJar(Path file) {
-        String jarName = file.getFileName().toString();
+        var jarName = file.getFileName().toString();
         try {
-            JarFile jar = new JarFile(file.toFile());
-            JarEntry manifestEntry = jar.getJarEntry("manifest.pgh");
+            var jar = new JarFile(file.toFile());
+            var manifestEntry = jar.getJarEntry("manifest.pgh");
             if (manifestEntry == null) {
                 logger.warn("Skipping JAR without manifest.pgh!", file);
                 jar.close();
                 return;
             }
 
-            Properties properties = new Properties();
-            try (InputStream in = jar.getInputStream(manifestEntry)) {
+            var properties = new Properties();
+            try (var in = jar.getInputStream(manifestEntry)) {
                 properties.load(in);
             }
 
-            String name = properties.getProperty("name");
-            String version = properties.getProperty("version");
-            String mainClassName = properties.getProperty("main-class");
+            var name = properties.getProperty("name");
+            var version = properties.getProperty("version");
+            var mainClassName = properties.getProperty("main-class");
 
             if (name == null || name.isBlank()) {
                 logger.error("Plugin missing required name field!", jarName);
@@ -75,7 +73,7 @@ public class PluginManager {
                 return;
             }
 
-            JarEntry classEntry = jar.getJarEntry(mainClassName.replace('.', '/') + ".class");
+            var classEntry = jar.getJarEntry(mainClassName.replace('.', '/') + ".class");
             if (classEntry == null) {
                 logger.error("Plugin main class does not exist!", jarName, mainClassName);
                 jar.close();
@@ -83,7 +81,7 @@ public class PluginManager {
             }
 
             jar.close();
-            URLClassLoader loader = new URLClassLoader(new URL[]{file.toUri().toURL()}, PluginManager.class.getClassLoader());
+            var loader = new URLClassLoader(new URL[]{file.toUri().toURL()}, PluginManager.class.getClassLoader());
             Class<?> clazz;
             try {
                 clazz = Class.forName(mainClassName, true, loader);
@@ -101,7 +99,7 @@ public class PluginManager {
 
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
-            Object instance = constructor.newInstance();
+            var instance = constructor.newInstance();
             plugins.add((PghPlugin) instance);
             classLoaders.add(loader);
             logger.info("Loaded plugin!", name, "v" + version);
@@ -111,7 +109,7 @@ public class PluginManager {
     }
 
     public static void onEnable(PghAPI server) {
-        for (PghPlugin plugin : plugins)
+        for (var plugin : plugins)
             try {
                 plugin.onEnable(server, new Logger(plugin, logger.logStream, logger.warningStream, logger.errorStream, logger.fatalStream));
             } catch (Exception ex) {
@@ -120,14 +118,14 @@ public class PluginManager {
     }
 
     public static void onDisable(PghAPI server) {
-        for (PghPlugin plugin : plugins)
+        for (var plugin : plugins)
             try {
                 plugin.onDisable(server, new Logger(plugin, logger.logStream, logger.warningStream, logger.errorStream, logger.fatalStream));
             } catch (Exception ex) {
                 logger.error("Plugin crashed during disable!", plugin, ex);
             }
 
-        for (URLClassLoader loader : classLoaders)
+        for (var loader : classLoaders)
             try {
                 loader.close();
             } catch (Exception ignored) {

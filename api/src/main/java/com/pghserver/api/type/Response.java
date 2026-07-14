@@ -133,7 +133,7 @@ public class Response {
      * @return Whether the header is equal to that exact value
      */
     public boolean isHeader(@NotNull String name, @NotNull String value) {
-        String actual = header(name);
+        var actual = header(name);
         return actual != null && actual.equals(value);
     }
 
@@ -145,7 +145,7 @@ public class Response {
      */
     public void header(@NotNull String name, @Nullable String value) {
         if (value == null) {
-            for (Map.Entry<String, String> header : headers.entrySet()) {
+            for (var header : headers.entrySet()) {
                 if (!header.getKey().equalsIgnoreCase(name)) continue;
                 headers.remove(header.getKey());
             }
@@ -210,11 +210,11 @@ public class Response {
      * @throws IOException Any problems encountered while writing to the output stream
      */
     public void toOutputStream(OutputStream out) throws IOException {
-        String statusLine = HTTP_VERSION + " " + statusCode() + " " + statusString();
+        var statusLine = HTTP_VERSION + " " + statusCode() + " " + statusString();
         out.write(statusLine.getBytes(StandardCharsets.UTF_8));
         out.write(CRLF_UTF8);
 
-        for (Map.Entry<String, String> header : headers.entrySet()) {
+        for (var header : headers.entrySet()) {
             out.write((header.getKey() + ": " + header.getValue()).getBytes(StandardCharsets.UTF_8));
             out.write(CRLF_UTF8);
         }

@@ -24,9 +24,7 @@ public class Main {
     private static final Logger logger = new Logger(Main.class, System.out, System.err, System.err, System.err);
 
     private static void handle(PghServer server, Socket socket) {
-        try {
-            var in = new DataInputStream(socket.getInputStream());
-            var out = new DataOutputStream(socket.getOutputStream());
+        try (socket; var in = new DataInputStream(socket.getInputStream()); var out = new DataOutputStream(socket.getOutputStream())) {
             boolean keepAlive = true;
             while (keepAlive) {
                 var response = new Response();
@@ -82,8 +80,12 @@ public class Main {
                 }
             });
 
-            while (isRunning.get()) try (var socket = serverSocket.accept()) {
+            while (isRunning.get()) try {
+                var socket = serverSocket.accept();
                 Thread.ofVirtual().start(() -> handle(server, socket));
+            } catch (SocketTimeoutException ignored) {
+            } catch (IOException ex) {
+                logger.error("Failed to accept client!", ex);
             }
         } catch (IOException ex) {
             logger.fatal("Could not start PghServer!", ex);

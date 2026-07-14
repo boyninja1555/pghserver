@@ -157,7 +157,7 @@ so it should only be used during compilation and should not be bundled with your
 
 ```kotlin
 dependencies {
-    compileOnly("com.pghserver:pghserver-api:1") // For v1
+    compileOnly("com.pghserver:pghserver-api:5") // For v5
 }
 ```
 
@@ -169,7 +169,7 @@ dependencies {
     <dependency>
         <groupId>com.pghserver</groupId>
         <artifactId>pghserver-api</artifactId>
-        <version>1</version> <!-- For v1 -->
+        <version>5</version> <!-- For v5 -->
         <scope>provided</scope>
     </dependency>
 </dependencies>

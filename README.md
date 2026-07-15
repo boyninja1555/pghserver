@@ -17,3 +17,6 @@ files on your site.
 > **Note:** We recommend new sites download
 > the [official static file server plugin](https://github.com/pghserver/pghstatic) JAR and drag it into the `plugins/`
 > directory. A full description and details are also available on that page.
+
+> **Note:** PghServer only implements HTTP/1.1! This is to ensure production environments are always using the standard
+> HTTP version for compatibility purposes. Programs like nginx default to HTTP/1.0, so they need a little configuration.

@@ -27,7 +27,7 @@ public class Main {
     private static void handlerAttempts(PghServer server, Request request, Response response, int handlerIdx) {
         var handlers = server.resolve(request.url().path);
         if (handlerIdx >= handlers.size()) {
-            response.status(ResponseStatus.NOT_FOUND);
+            if (response.status().equals(ResponseStatus.OK)) response.status(ResponseStatus.NOT_FOUND);
             return;
         }
 
